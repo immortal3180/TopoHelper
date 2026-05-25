@@ -616,40 +616,40 @@ root.title("TopoHelper")
 root.geometry("900x650")
 
 # 主容器
-container = tk.Frame(root, bg="#45475a")
+container = tk.Frame(root)
 container.pack(fill="both", expand=True)
 
 left = tk.Frame(container, bg="#1e1e2e")
 left.pack(side="left", fill="both", expand=True)
 
-# 伸缩条（点击切换日志栏显隐）
-toggle_bar = tk.Frame(container, bg="#45475a", width=8, cursor="sb_h_double_arrow")
-toggle_bar.pack(side="left", fill="y", padx=0)
-
-right = tk.Frame(container, bg="#181825", width=300)
-right.pack(side="left", fill="y")
+# 侧边栏容器（日志面板 + 伸缩条）
+right_wrapper = tk.Frame(container, bg="#45475a")
+right_wrapper.pack(side="right", fill="y")
 right_visible = True
+
+# 伸缩按钮（始终可见）
+toggle_bar = tk.Frame(right_wrapper, bg="#45475a", width=6)
+toggle_bar.pack(side="left", fill="y")
+toggle_label = tk.Label(toggle_bar, text="◀", bg="#45475a", fg="#cdd6f4",
+                         font=("", 8), cursor="hand2")
+toggle_label.pack(expand=True)
+
+# 日志面板
+right = tk.Frame(right_wrapper, bg="#181825", width=300)
+right.pack(side="left", fill="both", expand=True)
 
 def _toggle_log():
     global right_visible
     if right_visible:
         right.pack_forget()
-        toggle_bar.pack_forget()
         right_visible = False
+        toggle_label.config(text="▶")
     else:
-        toggle_bar.pack(side="left", fill="y", padx=0, after=left)
-        right.pack(side="left", fill="y", after=toggle_bar)
+        right.pack(side="left", fill="both", expand=True)
         right_visible = True
+        toggle_label.config(text="◀")
 
-# 日志栏标题栏（含伸缩按钮）
-log_header = tk.Frame(right, bg="#181825")
-log_header.pack(fill="x", padx=10, pady=(10, 0))
-tk.Label(log_header, text="执行日志", bg="#181825", fg="#cdd6f4",
-         font=("", 10, "bold")).pack(side="left")
-toggle_btn = tk.Label(toggle_bar, text="◀", bg="#45475a", fg="#cdd6f4",
-                       font=("", 8), cursor="hand2")
-toggle_btn.pack(expand=True)
-toggle_btn.bind("<Button-1>", lambda e: _toggle_log())
+toggle_label.bind("<Button-1>", lambda e: _toggle_log())
 
 # ── 左侧面板 ──
 
@@ -727,7 +727,11 @@ preview_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
 log_text = tk.Text(right, bg="#11111b", fg="#cdd6f4", font=("Consolas", 9),
                     state="normal")
-log_text.pack(fill="both", expand=True, padx=10, pady=5)
+log_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+
+# 日志标题
+tk.Label(right, text="执行日志", bg="#181825", fg="#cdd6f4",
+         font=("", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
 
 def main():
     log("topo-helper 启动就绪")
