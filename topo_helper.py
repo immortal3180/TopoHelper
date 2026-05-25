@@ -615,15 +615,41 @@ root = tk.Tk()
 root.title("TopoHelper")
 root.geometry("900x650")
 
-main_pw = tk.PanedWindow(root, orient="horizontal", sashwidth=5, bg="#45475a")
-main_pw.pack(fill="both", expand=True)
+# 主容器
+container = tk.Frame(root, bg="#45475a")
+container.pack(fill="both", expand=True)
 
-left = tk.Frame(main_pw, bg="#1e1e2e")
-right = tk.Frame(main_pw, bg="#181825")
-main_pw.add(left, minsize=200)
-main_pw.add(right, minsize=200)
-main_pw.paneconfig(left, stretch="always")
-main_pw.paneconfig(right, stretch="always")
+left = tk.Frame(container, bg="#1e1e2e")
+left.pack(side="left", fill="both", expand=True)
+
+# 伸缩条（点击切换日志栏显隐）
+toggle_bar = tk.Frame(container, bg="#45475a", width=8, cursor="sb_h_double_arrow")
+toggle_bar.pack(side="left", fill="y", padx=0)
+
+right = tk.Frame(container, bg="#181825", width=300)
+right.pack(side="left", fill="y")
+right_visible = True
+
+def _toggle_log():
+    global right_visible
+    if right_visible:
+        right.pack_forget()
+        toggle_bar.pack_forget()
+        right_visible = False
+    else:
+        toggle_bar.pack(side="left", fill="y", padx=0, after=left)
+        right.pack(side="left", fill="y", after=toggle_bar)
+        right_visible = True
+
+# 日志栏标题栏（含伸缩按钮）
+log_header = tk.Frame(right, bg="#181825")
+log_header.pack(fill="x", padx=10, pady=(10, 0))
+tk.Label(log_header, text="执行日志", bg="#181825", fg="#cdd6f4",
+         font=("", 10, "bold")).pack(side="left")
+toggle_btn = tk.Label(toggle_bar, text="◀", bg="#45475a", fg="#cdd6f4",
+                       font=("", 8), cursor="hand2")
+toggle_btn.pack(expand=True)
+toggle_btn.bind("<Button-1>", lambda e: _toggle_log())
 
 # ── 左侧面板 ──
 
@@ -699,11 +725,9 @@ preview_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
 # ── 右侧面板: 日志 ──
 
-tk.Label(right, text="执行日志", bg="#181825", fg="#cdd6f4",
-         font=("", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
 log_text = tk.Text(right, bg="#11111b", fg="#cdd6f4", font=("Consolas", 9),
                     state="normal")
-log_text.pack(fill="both", expand=True, padx=10, pady=10)
+log_text.pack(fill="both", expand=True, padx=10, pady=5)
 
 def main():
     log("topo-helper 启动就绪")
