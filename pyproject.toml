@@ -6,11 +6,11 @@ requires-python = ">=3.10"
 dependencies = ["openai>=1.0"]
 
 [project.scripts]
-topohelper = "topo_helper:main"
+topohelper = "main:main"
 
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["topo_helper"]
+py-modules = ["main", "config", "llm", "telnet"]
