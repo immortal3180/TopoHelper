@@ -204,10 +204,8 @@ def _parse_config(text: str):
     preview_text.delete("1.0", "end")
     for dev, cmds in generated_config.items():
         preview_text.insert("end", f"── {dev} ──\n")
-        for c in cmds[:10]:
+        for c in cmds:
             preview_text.insert("end", f"  {c}\n")
-        if len(cmds) > 10:
-            preview_text.insert("end", f"  ... 共 {len(cmds)} 条\n")
         preview_text.insert("end", "\n")
 
     log(f"配置生成完成: {len(generated_config)} 台设备")
@@ -622,7 +620,7 @@ btn_deploy.pack(side="left", padx=5)
 # 配置预览
 tk.Label(left, text="配置预览", bg="#1e1e2e", fg="#cdd6f4",
          font=("", 10, "bold")).pack(anchor="w", padx=10, pady=(5, 0))
-preview_text = tk.Text(left, height=10, bg="#11111b", fg="#a6e3a1",
+preview_text = tk.Text(left, bg="#11111b", fg="#a6e3a1",
                         font=("Consolas", 9), state="normal")
 preview_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
