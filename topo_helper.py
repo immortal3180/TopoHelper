@@ -25,6 +25,40 @@ sock = None
 generated_config = {}  # {设备名: [命令列表]}
 current_ip = "127.0.0.1"
 
+# 配置文件路径（与 .exe 同目录）
+import sys as _sys
+_config_dir = Path(_sys.argv[0]).parent if hasattr(_sys, "argv") else Path(".")
+CONFIG_FILE = _config_dir / "topohelper.json"
+
+
+def _save_config():
+    """保存 LLM 配置到本地文件"""
+    try:
+        data = {
+            "key": key_var.get().strip(),
+            "url": url_var.get().strip(),
+            "model": model_var.get().strip(),
+        }
+        CONFIG_FILE.write_text(json.dumps(data), encoding="utf-8")
+    except:
+        pass
+
+
+def _load_config():
+    """启动时加载本地配置并填充界面"""
+    if not CONFIG_FILE.exists():
+        return
+    try:
+        data = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        if data.get("key"):
+            key_var.set(data["key"])
+        if data.get("url"):
+            url_var.set(data["url"])
+        if data.get("model"):
+            model_var.set(data["model"])
+    except:
+        pass
+
 
 def log(msg: str):
     """写日志"""
@@ -209,6 +243,7 @@ def _parse_config(text: str):
         preview_text.insert("end", "\n")
 
     log(f"配置生成完成: {len(generated_config)} 台设备")
+    _save_config()
     btn_gen.config(state="normal", text="生成配置")
     btn_deploy.config(state="normal")
 
@@ -634,6 +669,7 @@ log_text.pack(fill="both", expand=True, padx=10, pady=10)
 
 def main():
     log("topo-helper 启动就绪")
+    _load_config()
     root.mainloop()
 
 
