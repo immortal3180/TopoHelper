@@ -573,6 +573,101 @@ SYSTEM_PROMPT = """你是一个华为/H3C/Cisco 网络配置专家。用户会�
 7. 确保配置顺序正确: 先 system-view, 接口配置, 协议配置, return"""
 
 
+_tsock = None  # 终端窗口的 socket
+
+
+def _open_terminal(event=None):
+    """双击设备行打开 socket 终端"""
+    sel = device_list.curselection()
+    if not sel:
+        return
+    line = device_list.get(sel[0])
+    m = re.search(r"(\d+\.\d+\.\d+\.\d+):(\d+)", line)
+    m2 = re.search(r"^\s*(\S+)", line)
+    if not m:
+        return
+    ip = m.group(1)
+    port = int(m.group(2))
+    name = m2.group(1) if m2 else f"{ip}:{port}"
+    _spawn_terminal(name, ip, port)
+
+
+def _spawn_terminal(name: str, ip: str, port: int):
+    """打开独立终端窗口"""
+    win = tk.Toplevel(root)
+    win.title(f"{name} ({ip}:{port})")
+    win.geometry("680x500")
+
+    out = tk.Text(win, font=("Consolas", 12), bg="#11111b", fg="#cdd6f4",
+                  insertbackground="#cdd6f4", state="disabled")
+    out.pack(fill="both", expand=True)
+
+    def write(text):
+        out.config(state="normal")
+        out.insert("end", text)
+        out.see("end")
+        out.config(state="disabled")
+
+    local_sock = None
+
+    def recv():
+        nonlocal local_sock
+        if not local_sock:
+            return
+        try:
+            data = local_sock.recv(4096)
+            if not data:
+                win.destroy(); return
+            text = d_encode(data)
+            if "---- More ----" in text:
+                text = text.replace("---- More ----", "")
+                try: local_sock.sendall(b" \r\n")
+                except: pass
+            write(text)
+        except socket.timeout:
+            pass
+        except:
+            win.destroy(); return
+        win.after(150, recv)
+
+    def send(event=None):
+        nonlocal local_sock
+        if not local_sock: return
+        cmd = tinp.get()
+        tinp.delete(0, "end")
+        try:
+            local_sock.sendall(f"{cmd}\r\n".encode())
+        except:
+            win.destroy(); return
+        old = local_sock.gettimeout()
+        local_sock.settimeout(0.5)
+        try: local_sock.recv(4096)  # 吃 echo
+        except: pass
+        local_sock.settimeout(old)
+
+    def on_close():
+        nonlocal local_sock
+        if local_sock:
+            try: local_sock.close()
+            except: pass
+        win.destroy()
+
+    try:
+        local_sock = socket.create_connection((ip, port), timeout=5)
+        local_sock.settimeout(0.15)
+    except Exception as e:
+        write(f"连接失败: {e}\n")
+        return
+
+    win.protocol("WM_DELETE_WINDOW", on_close)
+    tinp = tk.Entry(win, font=("Consolas", 12), bg="#313244", fg="#cdd6f4",
+                     insertbackground="#cdd6f4")
+    tinp.pack(side="bottom", fill="x")
+    tinp.bind("<Return>", send)
+    tinp.focus()
+    recv()
+
+
 # ── GUI 布局 ───────────────────────────────────────────────
 
 root = tk.Tk()
@@ -616,6 +711,7 @@ btn_scan.pack(side="left")
 device_list = tk.Listbox(left, bg="#11111b", fg="#a6e3a1",
                           font=("Consolas", 10), selectbackground="#45475a")
 device_list.pack(fill="both", expand=True, padx=10, pady=5)
+device_list.bind("<Double-Button-1>", _open_terminal)
 
 # 配置要求
 tk.Label(left, text="配置要求", bg="#1e1e2e", fg="#cdd6f4",
