@@ -65,7 +65,7 @@ def _load_config():
 
 def log(msg: str):
     """写日志"""
-    ts = datetime.now().strftime("%H:%M:%S")
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] {msg}"
     log_lines.append(line)
     root.after(0, lambda: _log_to_ui(line))
