@@ -1,0 +1,16 @@
+[project]
+name = "topo-helper"
+version = "0.1.0"
+description = "自然语言 → 网络配置 全流程工具"
+requires-python = ">=3.10"
+dependencies = ["openai>=1.0"]
+
+[project.scripts]
+topo-helper = "topo_helper:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["topo_helper"]

@@ -1,0 +1,26 @@
+# 构建产物
+release/
+build_temp/
+dist/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+
+# 临时文件
+*.log
+*.spec
+
+# 测试数据 & 示例文件
+*.topo
+
+# IDE
+.vscode/
+.idea/
+
+# 系统文件
+Thumbs.db
+.DS_Store
