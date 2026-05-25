@@ -612,9 +612,9 @@ tk.Entry(f2, textvariable=ip_var, width=18, bg="#313244", fg="#cdd6f4").pack(sid
 btn_scan = tk.Button(f2, text="扫描", command=scan_devices, width=6, bg="#45475a", fg="#cdd6f4")
 btn_scan.pack(side="left")
 
-device_list = tk.Listbox(left, height=6, bg="#11111b", fg="#a6e3a1",
+device_list = tk.Listbox(left, bg="#11111b", fg="#a6e3a1",
                           font=("Consolas", 10), selectbackground="#45475a")
-device_list.pack(fill="x", padx=10, pady=5)
+device_list.pack(fill="both", expand=True, padx=10, pady=5)
 
 # 配置要求
 tk.Label(left, text="配置要求", bg="#1e1e2e", fg="#cdd6f4",
