@@ -48,38 +48,45 @@ def is_port_open(ip: str, port: int, timeout=0.5) -> bool:
 
 
 def deploy_commands(ip: str, port: int, commands: list[str], timeout=5) -> bool:
-    """下发命令列表，成功返回 True"""
+    """整块下发命令列表，一次发送全部"""
     try:
         s = socket.create_connection((ip, port), timeout=timeout)
     except Exception:
         return False
     try:
-        s.settimeout(2)
-        time.sleep(0.3)
+        s.settimeout(3)
+        # 收初始输出
         try:
             s.recv(4096)
         except Exception:
             pass
-        for cmd in commands:
-            if not cmd.strip():
-                continue
-            s.sendall(f"{cmd}\r\n".encode())
-            time.sleep(0.15)
-            old = s.gettimeout()
-            s.settimeout(1)
-            try:
-                s.recv(4096)
-            except Exception:
-                pass
-            s.settimeout(old)
-            try:
-                data = s.recv(4096)
-                if b"---- More ----" in data:
+        # 确保关分页
+        cmds = list(commands)
+        has_screen = any("screen-length" in c for c in cmds)
+        has_sysview = any(c.strip() == "system-view" for c in cmds)
+        if has_sysview and not has_screen:
+            cmds.insert(cmds.index("system-view") + 1, "screen-length 0 temporary")
+        # 一次性发送全部
+        block = "\r\n".join(c for c in cmds if c.strip()) + "\r\n"
+        s.sendall(block.encode())
+        # 等待设备消化
+        time.sleep(len(cmds) * 0.04)
+        # 收剩余的 More 分页
+        s.settimeout(1)
+        output = b""
+        try:
+            while True:
+                chunk = s.recv(4096)
+                if not chunk:
+                    break
+                output += chunk
+                if b"---- More ----" in chunk:
                     s.sendall(b" \r\n")
-            except Exception:
-                pass
+        except Exception:
+            pass
         s.close()
-        return True
+        text = output.decode("utf-8", errors="replace").lower()
+        return not any(e in text for e in ["error:", "incomplete", "unrecognized"])
     except Exception:
         try:
             s.close()

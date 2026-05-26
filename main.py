@@ -189,7 +189,7 @@ def deploy_all():
                 log(f"  {dev_name}: {len(cmds)} 条下发完成")
                 ok += 1
             else:
-                log(f"  {dev_name}: 连接失败")
+                log(f"  {dev_name}: 部署异常（Error/Incomplete/Unrecognized）")
                 fail += 1
         log(f"部署完成: {ok} 成功, {fail} 失败")
         root.after(0, lambda: btn_deploy.config(state="normal", text="部署"))
